@@ -1,0 +1,23 @@
+{
+  "name": "lms-one-time-scripts",
+  "version": "1.0.0",
+  "description": "Scripts used only once",
+  "main": "index.js",
+  "scripts": {
+    "start:get-double-enrollments": "node get-double-enrollments/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bunyan": "^1.8.12",
+    "chalk": "^2.4.2",
+    "dotenv": "^6.2.0",
+    "inquirer": "^6.2.2",
+    "kth-canvas-api": "^0.15.7",
+    "ora": "^3.0.0",
+    "papaparse": "^4.6.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
+  }
+}
