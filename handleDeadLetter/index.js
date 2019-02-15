@@ -1,4 +1,3 @@
-require('dotenv').config()
 const { getEnv } = require('../lib/envs')
 const promisify = require('util').promisify
 const azure = require('azure-sb')
