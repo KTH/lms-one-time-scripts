@@ -1,24 +1,28 @@
 require('dotenv').config()
+const { getEnv } = require('../lib/envs')
 const promisify = require('util').promisify
 const azure = require('azure-sb')
 const chalk = require('chalk')
 const inquirer = require('inquirer')
 const ora = require('ora')
 
-const service = azure.createServiceBusService(process.env.AZURE_SERVICEBUS_CONNECTION_STRING)
-const TOPIC_PATH = process.env.AZURE_SERVICEBUS_TOPIC_NAME
-const SUBSCRIPTION_PATH = process.env.AZURE_SERVICEBUS_SUBSCRIPTION_NAME
 
-const getSubscription = () => promisify(service.getSubscription.bind(service))(TOPIC_PATH, SUBSCRIPTION_PATH)
-const unlockMessage = promisify(service.unlockMessage.bind(service))
-const deleteMessage = promisify(service.deleteMessage.bind(service))
-async function getDLQMessage () {
+async function getDLQMessage (topic, subscription) {
   const receiveMessage = promisify(service.receiveSubscriptionMessage.bind(service))
-  return receiveMessage(TOPIC_PATH, SUBSCRIPTION_PATH + '/$DeadLetterQueue', { isPeekLock: true })
+  return receiveMessage(topic, subscription + '/$DeadLetterQueue', { isPeekLock: true })
 }
 
 
 async function start () {
+  const service = azure.createServiceBusService(await getEnv('AZURE_SERVICEBUS_CONNECTION_STRING'))
+
+  const TOPIC_PATH = await getEnv('AZURE_SERVICEBUS_TOPIC_NAME')
+  const SUBSCRIPTION_PATH = await getEnv('AZURE_SERVICEBUS_SUBSCRIPTION_NAME')
+
+  const getSubscription = () => promisify(service.getSubscription.bind(service))(TOPIC_PATH, SUBSCRIPTION_PATH)
+  const unlockMessage = promisify(service.unlockMessage.bind(service))
+  const deleteMessage = promisify(service.deleteMessage.bind(service))
+
   let run = true
   let messages = 0
 
@@ -32,7 +36,8 @@ async function start () {
       console.log(chalk`Messages in dead letter queue: {bold ${messages}}`)
     } catch (err) {
       sp1.fail('Failure when connecting to the subscription')
-      throw err
+      console.error(err)
+      return
     }
 
     if (messages <= 0) {
@@ -42,7 +47,7 @@ async function start () {
     const sp2 = ora('Getting the first message in DLQ').start()
     let message
     try {
-      message = await getDLQMessage()
+      message = await getDLQMessage(TOPIC_PATH, SUBSCRIPTION_PATH)
     } catch (err) {
       sp2.fail('Failure when getting message from the DLQ')
       throw err
