@@ -6,8 +6,8 @@ const inquirer = require('inquirer')
 const ora = require('ora')
 
 const service = azure.createServiceBusService(process.env.AZURE_SERVICEBUS_CONNECTION_STRING)
-const TOPIC_PATH = 'lms-topic-carlos'
-const SUBSCRIPTION_PATH = 'lms-carlos-hello-world'
+const TOPIC_PATH = process.env.AZURE_SERVICEBUS_TOPIC_NAME
+const SUBSCRIPTION_PATH = process.env.AZURE_SERVICEBUS_SUBSCRIPTION_NAME
 
 const getSubscription = () => promisify(service.getSubscription.bind(service))(TOPIC_PATH, SUBSCRIPTION_PATH)
 const unlockMessage = promisify(service.unlockMessage.bind(service))
@@ -27,6 +27,7 @@ async function start () {
     try {
       const response = await getSubscription()
       sp1.stop()
+      console.log(chalk`Messages in normal queue:      {bold ${response.CountDetails['d3p1:ActiveMessageCount']}}`)
       messages = response.CountDetails['d3p1:DeadLetterMessageCount']
       console.log(chalk`Messages in dead letter queue: {bold ${messages}}`)
     } catch (err) {
