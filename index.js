@@ -10,7 +10,8 @@ const inquirer = require('inquirer')
     type: 'list',
     choices: [
       {name: 'Handle dead letters of a queue', value: './handleDeadLetter'},
-      {name: 'Get a list of users from UG', value: './getUgUsers'}
+      {name: 'Get a list of users from UG', value: './getUgUsers'},
+      {name: 'Check names in Canvas', value: './checkNamesInCanvas'}
     ]
   })
   require(answer)
