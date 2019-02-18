@@ -4,7 +4,7 @@ const papa = require('papaparse')
 ;(async function start () {
   const report = papa.parse(
     fs.readFileSync('/tmp/report.csv', 'utf8'),
-    {header: true}
+    { header: true }
   ).data
 
   const wrongs = report

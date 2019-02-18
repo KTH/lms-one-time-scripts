@@ -2,7 +2,6 @@ const { getEnv } = require('../lib/envs')
 const ldap = require('ldapjs')
 const ora = require('ora')
 const fs = require('fs')
-const fixedHeaders = ['kthid', 'username', 'name']
 
 async function getUsers () {
   const result = []
@@ -16,7 +15,6 @@ async function getUsers () {
     sizeLimit: 1000,
     attributes: ['ugKthid', 'ugUsername', 'sn', 'givenName']
   }
-
 
   return new Promise(async (resolve, reject) => {
     const bindingSpinner = ora('Connecting to LDAP').start()
@@ -70,12 +68,6 @@ async function getUsers () {
     })
   })
 }
-
-async function writeCsv (users) {
-
-}
-
-
 
 ;(async function start () {
   try {

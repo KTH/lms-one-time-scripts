@@ -2,7 +2,6 @@ const { getEnv } = require('../lib/envs')
 const ldap = require('ldapjs')
 const fs = require('fs')
 const papa = require('papaparse')
-const ora = require('ora')
 const { promisify } = require('util')
 const CanvasApi = require('kth-canvas-api')
 
@@ -49,7 +48,6 @@ async function ugSearch (kthId) {
   return users
 }
 
-
 ;(async function start () {
   const canvasApi = new CanvasApi(await getEnv('CANVAS_API_URL'), await getEnv('CANVAS_API_KEY'))
   const report = []
@@ -63,9 +61,9 @@ async function ugSearch (kthId) {
             user.ug_given_name = ugUser.givenName
             user.ug_family_name = ugUser.sn
 
-            user.correct_name          = user.name          === ugUser.givenName + ' ' + ugUser.sn
+            user.correct_name = user.name === ugUser.givenName + ' ' + ugUser.sn
             user.correct_sortable_name = user.sortable_name === ugUser.sn + ', ' + ugUser.givenName
-            user.correct_short_name    = user.short_name    === ugUser.givenName + ' ' + ugUser.sn
+            user.correct_short_name = user.short_name === ugUser.givenName + ' ' + ugUser.sn
           } else {
             user.correct_name = 'Not IN UG'
           }

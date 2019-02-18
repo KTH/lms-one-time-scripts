@@ -5,12 +5,10 @@ const chalk = require('chalk')
 const inquirer = require('inquirer')
 const ora = require('ora')
 
-
-async function getDLQMessage (topic, subscription) {
+async function getDLQMessage (service, topic, subscription) {
   const receiveMessage = promisify(service.receiveSubscriptionMessage.bind(service))
   return receiveMessage(topic, subscription + '/$DeadLetterQueue', { isPeekLock: true })
 }
-
 
 async function start () {
   const service = azure.createServiceBusService(await getEnv('AZURE_SERVICEBUS_CONNECTION_STRING'))
@@ -46,7 +44,7 @@ async function start () {
     const sp2 = ora('Getting the first message in DLQ').start()
     let message
     try {
-      message = await getDLQMessage(TOPIC_PATH, SUBSCRIPTION_PATH)
+      message = await getDLQMessage(service, TOPIC_PATH, SUBSCRIPTION_PATH)
     } catch (err) {
       sp2.fail('Failure when getting message from the DLQ')
       throw err
@@ -58,13 +56,13 @@ async function start () {
     console.log(message)
     console.log()
 
-    const {nextStep} = await inquirer.prompt([{
+    const { nextStep } = await inquirer.prompt([{
       name: 'nextStep',
       message: 'What do you want to do with that message?',
       type: 'list',
       choices: [
-        {name: 'Delete (consume) the message', value: 'delete'},
-        {name: 'Don\'t do anything. Exit the app', value: 'exit'}
+        { name: 'Delete (consume) the message', value: 'delete' },
+        { name: 'Don\'t do anything. Exit the app', value: 'exit' }
       ]
     }])
 

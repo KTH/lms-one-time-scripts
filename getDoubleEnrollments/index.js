@@ -66,7 +66,7 @@ async function newReport () {
 }
 
 async function waitUntilComplete (report) {
-  const sleep = t => new Promise(accept => setTimeout(accept, t))
+  const sleep = t => new Promise(resolve => setTimeout(resolve, t))
   const spinner = ora('Waiting until the report is completed').start()
 
   while (report.status !== 'complete') {
@@ -95,10 +95,10 @@ function getLocalReport (report) {
   }
 }
 
-const saveContentToFile = fileName => content => new Promise(accept => {
-  const writeStream = fs.writeFileSync(fileName, content)
+const saveContentToFile = fileName => content => new Promise(resolve => {
+  fs.writeFileSync(fileName, content)
 
-  return content
+  resolve(content)
 })
 
 async function downloadReport (report) {
@@ -107,7 +107,7 @@ async function downloadReport (report) {
 
   const spinner = ora(`Downloading CSV file from ${url} to ${fileName}`).start()
 
-  const content = await rp({url, headers: {'Connection': 'keep-alive'}})
+  const content = await rp({ url, headers: { 'Connection': 'keep-alive' } })
     .then(saveContentToFile(fileName))
 
   spinner.succeed()
@@ -118,7 +118,7 @@ async function start () {
   const report = await getReport() || await newReport()
   const csv = await getLocalReport(report) || await downloadReport(report)
 
-  const enrollments = papa.parse(csv, {header: true}).data
+  const enrollments = papa.parse(csv, { header: true }).data
   const groupedEnrollments = new Map()
   const spinner = ora('Grouping by section_id and user_id').start()
   const duplicated = []
@@ -152,7 +152,7 @@ async function start () {
 
   const filtered = duplicated
     .filter(d => d.section_id)
-    .filter(d => d.role_ids.includes('3') && d.role_ids.includes('11') )
+    .filter(d => d.role_ids.includes('3') && d.role_ids.includes('11'))
 
   console.log(`Users-in-sections that are Re-reg(id 11) and Student(id 3): ${filtered.length}`)
 
@@ -174,14 +174,13 @@ async function start () {
         d.user_id,
         d.canvas_section_id,
         d.section_id,
-        //d.roles.join(' + '),
-        //d.role_ids.join(' + '),
+        // d.roles.join(' + '),
+        // d.role_ids.join(' + '),
         d.enrollments.join(' + ')
       ].join(',') + '\n',
       'utf8'
     )
   }
-
 }
 
 start()
