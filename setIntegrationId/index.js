@@ -50,9 +50,10 @@ async function setupUser (kthId, ladokId) {
 
 async function start () {
   let i = 0
-  const breakAfter = 10
+  const breakAfter = 10000000
   for await (const user of canvas.list('/accounts/1/users')) {
     try {
+      console.group(`user ${user.sis_user_id}`)
       if (user.sis_user_id && !user.integration_id) {
         const kthId = user.sis_user_id
         const ugUser = await ldapSearch({ filter: `(ugKthId=${user.sis_user_id})`, attributes: ['ugLadok3StudentUid'] })
@@ -64,8 +65,9 @@ async function start () {
         } else {
           console.log(`User ${kthId} has no Ladok ID in UG`)
         }
+
+        i++
       }
-      i++
       if (i === breakAfter) {
         console.log(`Has handled ${i} number of user. Stopping.`)
         return
@@ -73,6 +75,8 @@ async function start () {
     } catch (e) {
       console.error(e)
       return
+    } finally {
+      console.groupEnd()
     }
   }
 }
