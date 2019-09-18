@@ -57,9 +57,9 @@ async function start () {
       if (user.sis_user_id && !user.integration_id) {
         const kthId = user.sis_user_id
         const ugUser = await ldapSearch({ filter: `(ugKthId=${user.sis_user_id})`, attributes: ['ugLadok3StudentUid'] })
-        const ladokId = ugUser[0].ugLadok3StudentUid
 
-        if (ladokId) {
+        if (ugUser && ugUser[0] && ugUser[0].ugLadok3StudentUid) {
+          const ladokId = ugUser[0].ugLadok3StudentUid
           await setupUser(kthId, ladokId)
           console.log(`==> Updated ${kthId} with Ladok ID ${ladokId}`)
         } else {
