@@ -25,7 +25,7 @@ async function ldapSearch ({
     const { searchEntries } = await ldapClient.search(base, options)
     return searchEntries
   } catch (err) {
-    err.message = 'Error in LPDAP: ' + err.message
+    err.message = 'Error in LDAP: ' + err.message
     throw err
   } finally {
     await ldapClient.unbind()
@@ -49,18 +49,30 @@ async function setupUser (kthId, ladokId) {
 }
 
 async function start () {
+  let i = 0
+  const breakAfter = 10
   for await (const user of canvas.list('/accounts/1/users')) {
-    if (user.sis_user_id && !user.integration_id) {
-      const kthId = user.sis_user_id
-      const ugUser = await ldapSearch({ filter: `(ugKthId=${user.sis_user_id})`, attributes: ['ugLadok3StudentUid'] })
-      const ladokId = ugUser[0].ugLadok3StudentUid
+    try {
+      if (user.sis_user_id && !user.integration_id) {
+        const kthId = user.sis_user_id
+        const ugUser = await ldapSearch({ filter: `(ugKthId=${user.sis_user_id})`, attributes: ['ugLadok3StudentUid'] })
+        const ladokId = ugUser[0].ugLadok3StudentUid
 
-      if (ladokId) {
-        await setupUser(kthId, ladokId)
-        console.log(`==> Updated ${kthId} with Ladok ID ${ladokId}`)
-      } else {
-        console.log(`User ${kthId} has no Ladok ID in UG`)
+        if (ladokId) {
+          await setupUser(kthId, ladokId)
+          console.log(`==> Updated ${kthId} with Ladok ID ${ladokId}`)
+        } else {
+          console.log(`User ${kthId} has no Ladok ID in UG`)
+        }
       }
+      i++
+      if (i === breakAfter) {
+        console.log(`Has handled ${i} number of user. Stopping.`)
+        return
+      }
+    } catch (e) {
+      console.error(e)
+      return
     }
   }
 }
