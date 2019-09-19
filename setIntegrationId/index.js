@@ -51,7 +51,7 @@ async function setupUser (kthId, ladokId) {
 async function start () {
   let i = 0
   const breakAfter = 10000000
-  for await (const user of canvas.list('/accounts/1/users')) {
+  for await (const user of canvas.list('/accounts/1/users', { per_page: 100 })) {
     try {
       console.group(`user ${user.sis_user_id}`)
       if (user.sis_user_id && !user.integration_id) {
