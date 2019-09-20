@@ -41,6 +41,7 @@ async function setupUser (kthId, ladokId) {
         }
       }
 
+      console.log('body:', body)
       await canvas.requestUrl(`/accounts/${login.account_id}/logins/${login.id}`, 'PUT', body)
     } else {
       console.log(`${login.sis_user_id} != ${kthId}`)
@@ -51,7 +52,7 @@ async function setupUser (kthId, ladokId) {
 async function start () {
   let i = 0
   const breakAfter = 10000000
-  for await (const user of canvas.list('/accounts/1/users', { per_page: 100 })) {
+  for await (const user of canvas.list('/accounts/1/users', { per_page: 100, page: process.env.START_PAGE || 0 })) {
     try {
       console.group(`user ${user.sis_user_id}`)
       if (user.sis_user_id && !user.integration_id) {
