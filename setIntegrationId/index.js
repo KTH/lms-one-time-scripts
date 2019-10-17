@@ -25,7 +25,7 @@ async function ldapSearch ({
     const { searchEntries } = await ldapClient.search(base, options)
     return searchEntries
   } catch (err) {
-    err.message = 'Error in LPDAP: ' + err.message
+    err.message = 'Error in LDAP: ' + err.message
     throw err
   } finally {
     await ldapClient.unbind()
@@ -41,6 +41,7 @@ async function setupUser (kthId, ladokId) {
         }
       }
 
+      console.log('body:', body)
       await canvas.requestUrl(`/accounts/${login.account_id}/logins/${login.id}`, 'PUT', body)
     } else {
       console.log(`${login.sis_user_id} != ${kthId}`)
@@ -49,20 +50,37 @@ async function setupUser (kthId, ladokId) {
 }
 
 async function start () {
-  for await (const user of canvas.list('/accounts/1/users')) {
-    if (user.sis_user_id && !user.integration_id) {
-      const kthId = user.sis_user_id
-      const ugUser = await ldapSearch({ filter: `(ugKthId=${user.sis_user_id})`, attributes: ['ugLadok3StudentUid'] })
-      const ladokId = ugUser[0].ugLadok3StudentUid
+  let i = 0
+  const breakAfter = 100000000
+  for await (const user of canvas.list('/accounts/1/users', { per_page: 100, page: process.env.START_PAGE || 1 })) {
+    try {
+      console.group(`user ${user.sis_user_id}`)
+      if (user.sis_user_id && !user.integration_id) {
+        const kthId = user.sis_user_id
+        const ugUser = await ldapSearch({ filter: `(ugKthId=${user.sis_user_id})`, attributes: ['ugLadok3StudentUid'] })
 
-      if (ladokId) {
-        await setupUser(kthId, ladokId)
-        console.log(`==> Updated ${kthId} with Ladok ID ${ladokId}`)
-      } else {
-        console.log(`User ${kthId} has no Ladok ID in UG`)
+        if (ugUser && ugUser[0] && ugUser[0].ugLadok3StudentUid) {
+          const ladokId = ugUser[0].ugLadok3StudentUid
+          await setupUser(kthId, ladokId)
+          console.log(`==> Updated ${kthId} with Ladok ID ${ladokId}`)
+        } else {
+          console.log(`User ${kthId} has no Ladok ID in UG`)
+        }
+
+        i++
       }
+      if (i === breakAfter) {
+        console.log(`Has handled ${i} number of user. Stopping.`)
+        return
+      }
+    } catch (e) {
+      console.error(e)
+      return
+    } finally {
+      console.groupEnd()
     }
   }
 }
 
 start()
+  .catch(e => console.error(e))
