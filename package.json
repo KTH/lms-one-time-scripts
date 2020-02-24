@@ -18,7 +18,7 @@
     "dotenv": "^6.2.0",
     "inquirer": "^6.2.2",
     "kth-canvas-api": "^0.15.7",
-    "ldapjs": "^1.0.2",
+    "ldapjs": "^2.0.0-pre.3",
     "ldapts": "^1.9.0",
     "ora": "^3.0.0",
     "papaparse": "^4.6.3",
